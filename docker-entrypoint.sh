@@ -18,6 +18,7 @@ fi
 env | awk -F'\n' '/^MSMTP_/ { print substr($1, 7) }' > "$CONF"
 
 # Configure NGINX and www.conf
+mkdir /etc/nginx/sites-enabled
 ln -s /etc/nginx/sites-available/dreamfactory.conf /etc/nginx/sites-enabled/dreamfactory.conf && \
 sed -i "s/pm.max_children = 5/pm.max_children = 5000/" /etc/php/8.1/fpm/pool.d/www.conf && \
 sed -i "s/pm.start_servers = 2/pm.start_servers = 150/" /etc/php/8.1/fpm/pool.d/www.conf && \
@@ -201,8 +202,8 @@ fi
 
 # start php8.1-fpm
 /usr/sbin/php-fpm --fpm-config /etc/php/8.1/fpm/php-fpm.conf
-# And grant nginx permissions to socket that we use above.
-chgrp nginx /var/run/php-fpm.sock
+# And grant www-data permissions to socket that we use above.
+chgrp www-data /var/run/php-fpm.sock
 #service php8.1-fpm start
 
 # start cron service for df-scheduler

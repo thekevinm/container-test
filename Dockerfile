@@ -1,18 +1,25 @@
-ARG BASE=cgr.dev/custom-images/request-306@sha256:6016b955a5679a5a35c7b11275056a13bc01ee644d4d0867aa3ff65d59de7e1d
+ARG BASE=gcr.io/vaikas-chainguard/request-306@sha256:f205b3cb7d4bed0c1ad708d560b3fa95dc2aea51820f3f3fccd5505abef87ac5
+#ARG BASE=ARG BASE=cgr.dev/dreamfactory.com/df-docker-base
 FROM $BASE
 
 # The base image runs as non-root, but we need root to chown things below
 USER root
 
+# Remove the xfs user which seems to cause grief colliding with www-data
+# TODO(vaikas): Remove from the base image
+RUN sed -i '/xfs/d' /etc/passwd
+
 # Configure Nginx
+COPY nginx.conf /etc/nginx/nginx.conf
 COPY dreamfactory.conf /etc/nginx/sites-available/dreamfactory.conf
 # Note that the configuration expects it here, so to make smallest amount
 # of changes, copy it there.
-COPY dreamfactory.conf /etc/nginx/sites-enabled/dreamfactory.conf
+# We create a slink in the entrypoint.
+#COPY dreamfactory.conf /etc/nginx/sites-enabled/dreamfactory.conf
 # Include the sites-available so that it's included in the nginx.conf
 # TODO: Maybe create a nginx.conf as part of this repo and copy it in there
 # rather than relying on upstream changes.
-RUN sed -i '/include.*mime/a     include \/etc\/nginx\/sites-enabled\\/*.conf;' /etc/nginx/nginx.conf
+#RUN sed -i '/include.*mime/a     include \/etc\/nginx\/sites-enabled\\/*.conf;' /etc/nginx/nginx.conf
 # Put the directories where we expect them to be in the docker-entrypoint.sh
 RUN mkdir -p /etc/php/8.1/fpm/pool.d && cp /etc/php/php-fpm.d/www.conf /etc/php/8.1/fpm/pool.d/www.conf
 RUN cp /etc/php/php-fpm.d/www.conf /etc/php/8.1/fpm/pool.d/www.conf
@@ -50,12 +57,13 @@ RUN chmod +x /docker-entrypoint.sh && ln -sf /dev/stderr /var/log/nginx/error.lo
 
 # THIS IS BAD!!! Seems like `nobody` writes to some places. Maybe others???
 # Wonder if this is because some things run as root and some as nginx, or ???
-RUN chmod -R 777 /opt/dreamfactory/storage
+# Some files are in storage and some in vendor
+RUN chmod -R 777 /opt/dreamfactory
 
 # Clean up
 RUN rm -rf /tmp/* /var/tmp/*
 
 EXPOSE 80
 
-ENTRYPOINT ["/bin/bash", "/docker-entrypoint.sh"]
+ENTRYPOINT /docker-entrypoint.sh
 #CMD ["/docker-entrypoint.sh"]
