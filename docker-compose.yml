@@ -1,23 +1,19 @@
 version: '3'
 services:
-  mysql:
+  mariadb:
+    image: cgr.dev/chainguard/mariadb
+    container_name: mariadb
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: dreamfactory
-      MYSQL_USER: df_admin
-      MYSQL_PASSWORD: df_admin
-    image: mysql:5.7
+      MARIADB_ROOT_PASSWORD: 7gtrgdgt5j
+      MARIADB_DATABASE: dreamfactory
     volumes:
       - df-mysql:/var/lib/mysql
-      
-  example_data:
-    environment:
-      DATASETS: pagila
-      POSTGRES_PASSWORD: root_pw
-    image: aa8y/postgres-dataset    
+        
       
   redis:
-    image: redis
+    image: cgr.dev/chainguard/redis:latest
+    container_name: redis
 
   web:
     environment:
@@ -25,10 +21,12 @@ services:
 #      HTTPS_HEADER: "on"
       # APP_KEY: VALUE
       DB_DRIVER: mysql
-      DB_HOST: mysql
-      DB_USERNAME: df_admin
-      DB_PASSWORD: df_admin
+      DB_HOST: mariadb
+      DB_USERNAME: root
+      DB_PASSWORD: 7gtrgdgt5j
       DB_DATABASE: dreamfactory
+      DB_CHARSET: utf8
+      DB_COLLATION: utf8_general_ci
       CACHE_DRIVER: redis
       CACHE_HOST: redis
       CACHE_DATABASE: 0
