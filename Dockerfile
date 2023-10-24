@@ -1,4 +1,4 @@
-ARG BASE=gcr.io/vaikas-chainguard/request-306@sha256:f205b3cb7d4bed0c1ad708d560b3fa95dc2aea51820f3f3fccd5505abef87ac5
+ARG BASE=cgr.dev/dreamfactory.com/df-docker-base:latest
 #ARG BASE=ARG BASE=cgr.dev/dreamfactory.com/df-docker-base
 FROM $BASE
 
